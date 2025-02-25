@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/qsl/exp/KPC/R3.cpp
+assert.h
+-
+chrono
+-
+future
+-
+thread
+-
+fstream
+-
+stdlib.h
+-
+stdio.h
+-
+stdbool.h
+-
+string.h
+-
+time.h
+-
+vector
+-
+map
+-
+iostream
+-
+

@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/DegenCol.dir/DegenCol.cpp.o  -o DegenCol 

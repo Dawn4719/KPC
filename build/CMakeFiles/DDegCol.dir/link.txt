@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/DDegCol.dir/DDegCol.cpp.o  -o DDegCol 

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="KPC"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="DDegCol">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/DDegCol" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 DDegCol"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="DDegCol/fast">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/DDegCol" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 DDegCol/fast"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="baseline">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/baseline" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 baseline"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="baseline/fast">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/baseline" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 baseline/fast"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="R3">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/R3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 R3"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="R3/fast">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/R3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 R3/fast"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="R2">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/R2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 R2"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="R2/fast">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/R2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 R2/fast"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="DegenCol">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/DegenCol" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 DegenCol"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="DegenCol/fast">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/DegenCol" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 DegenCol/fast"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="main">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/main" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 main"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="main/fast">
+				<Option output="/home/qsl/exp/KPC/cmake-build-debug/main" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/qsl/exp/KPC/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 main/fast"/>
+					<CompileFile command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j32 -f &quot;/home/qsl/exp/KPC/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/qsl/exp/KPC/DDegCol.cpp">
+			<Option target="DDegCol"/>
+		</Unit>
+		<Unit filename="/home/qsl/exp/KPC/DegenCol.cpp">
+			<Option target="DegenCol"/>
+		</Unit>
+		<Unit filename="/home/qsl/exp/KPC/R2.cpp">
+			<Option target="R2"/>
+		</Unit>
+		<Unit filename="/home/qsl/exp/KPC/R3.cpp">
+			<Option target="R3"/>
+		</Unit>
+		<Unit filename="/home/qsl/exp/KPC/baseline.cpp">
+			<Option target="baseline"/>
+		</Unit>
+		<Unit filename="/home/qsl/exp/KPC/main.cpp">
+			<Option target="main"/>
+		</Unit>
+		<Unit filename="/home/qsl/exp/KPC/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
