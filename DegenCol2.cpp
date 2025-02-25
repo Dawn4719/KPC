@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -8,7 +10,7 @@
 #include <map>
 using namespace std;
 
-#define NLINKS 100000000 //maximum number of edges for memory allocation, will increase if needed
+#define DEBUG 0
 
 struct edge{
 	unsigned s;
@@ -26,12 +28,15 @@ typedef struct {
 typedef struct {
 	unsigned n;//number of nodes
 	unsigned e;//number of edges
-	// edge *edges;//list of edges
-	vector<edge> edges;
+	edge *edges;//list of edges
+	// vector<edge> edges;
 	unsigned *ns;//ns[l]: number of nodes in G_l
 	unsigned **d;//d[l]: degrees of G_l
+	unsigned *rd;
 	unsigned *cd;//cumulative degree: (starts with 0) length=n+1
+	unsigned *rcd;//cumulative degree: (starts with 0) length=n+1
 	unsigned *adj;//truncated list of neighbors
+	unsigned *radj;//truncated list of neighbors
 	unsigned *rank;//ranking of the nodes according to degeneracy ordering
 	//unsigned *map;//oldID newID correspondance
 
@@ -48,6 +53,47 @@ typedef struct {
 
 int *color;
 unsigned *Index;
+
+#include <chrono>
+#include <fstream>
+#define Get_Time() std::chrono::high_resolution_clock::now()
+#define Duration(start) std::chrono::duration_cast< \
+std::chrono::microseconds>(Get_Time() - start).count() / (float)1000
+#define Print_Time(str, start) std::cout << str << Duration(start) << " ms" << std::endl
+map<string, size_t> get_index_mem() {
+	FILE* fp = fopen("/proc/self/status", "r");
+	char line[128];
+	map<string, size_t> res;
+	while (fgets(line, 128, fp) != NULL)
+	{
+		//        if (strncmp(line, "VmPeak", 2) == 0)
+		//        {
+		//            cout << line << endl;
+		////            printf("当前进程占用虚拟内存大小为：%d KB\n", atoi(line + 6));
+		//        }
+		if (strncmp(line, "VmRSS:", 6) == 0) {
+			string p = line;
+			res["now"] = size_t(stoull(p.substr(6)));
+			//            cout << line;
+		}
+		if (strncmp(line, "VmPeak:", 7) == 0) {
+			string p = line;
+			res["pk"] = size_t(stoull(p.substr(7)));
+			//            cout << line;
+		}
+	}
+	fclose(fp);
+	return res;
+}
+string getTime()
+{
+	time_t timep;
+	time (&timep);
+	char tmp[64];
+	strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S",localtime(&timep));
+	return tmp;
+}
+
 int cmp_core_degree(const void* a, const void* b)
 {
 	idrank *x = (idrank*)a, *y = (idrank*)b;
@@ -92,14 +138,18 @@ inline unsigned int max3(unsigned int a, unsigned int b, unsigned int c) {
 	a = (a > b) ? a : b;
 	return (a > c) ? a : c;
 }
-vector<int> v2m;
-vector<bool> st;
-vector<int> visCNT;
-vector<int> Candidate;
+int* v2m;
+bool* st;
+int* visCNT;
+int* Candidate;
 int CandidateCnt;
 int partiteSize;
+int* partiteVertexCSR;
+int* partiteVertexSplit;
+vector<int> partiteSetSize;
+vector<vector<int>> vec;
+
 specialsparse* readedgelist(char* edgelist) {
-	unsigned e1 = NLINKS;
 	specialsparse *g = (specialsparse *)malloc(sizeof(specialsparse));
 	FILE *file;
 
@@ -108,40 +158,141 @@ specialsparse* readedgelist(char* edgelist) {
 	file = fopen(edgelist, "r");
 	fscanf(file, "%u %u", &(g->n), &(g->e));
 	cout << g->n << " " << g->e << endl;
-	// g->edges = (edge *)malloc(g->e * sizeof(edge));
-	g->edges.resize(g->e);
-	char c;
-	v2m.resize(g->n);
-	st.resize(g->n);
-	visCNT.resize(g->n);
-	Candidate.resize(g->n);
+	g->edges = (edge *)malloc(g->e * sizeof(edge));
 
-	vector<vector<int>> v2partiteSet(4);
+	char c;
+	v2m = new int[g->n];
+	st = new bool[g->n];
+	visCNT = new int[g->n];
+	Candidate = new int[g->n];
+	partiteVertexCSR = new int[g->n];
+
+	memset(visCNT, 0, sizeof(int) * g->n);
+	memset(st, 0, sizeof(bool) * g->n);
+	memset(Candidate, 0, sizeof(int) * g->n);
+
+	map<int, int> v2partiteSet;
+	partiteSetSize.resize(partiteSize);
 	for (int i = 0; i < g->n; ++i) {
 		int x, y;
 		// fscanf(file, " %c %u %u", &c, &x, &y);
 		fscanf(file, "%u", &x);
 		v2m[i] = x;
-		v2partiteSet[x].emplace_back(i);
+		// v2partiteSet[x].emplace_back(i);
+		partiteSetSize[x]++;
 	}
-	partiteSize = v2partiteSet.size();
-	int cnt_ = 0;
-	adj.resize(g->n);;
-	// while (fscanf(file, " %c %u %u", &c, &(g->edges[cnt_].s), &(g->edges[cnt_].t)) == 3) {//Add one edge
-	while (fscanf(file, "%u %u", &(g->edges[cnt_].s), &(g->edges[cnt_].t)) == 2) {//Add one edge
-		// cout << g->edges[cnt_].s << " " << g->edges[cnt_++].t << endl;
-		adj[g->edges[cnt_].s].emplace_back(g->edges[cnt_].t);
-		adj[g->edges[cnt_].t].emplace_back(g->edges[cnt_].s);
-		cnt_++;
+	// partiteVertexSplit = new int[v2partiteSet.size() + 1];
+	// partiteVertexSplit[0] = 0;
+	// for (int _ = 0; _ < v2partiteSet.size(); ++_)
+	// 	partiteVertexSplit[_ + 1] = partiteVertexSplit[_] + v2partiteSet[_].size();
+	// for (int _ = 0; _ < v2partiteSet.size(); ++_)
+	// {
+	// 	for (int j = partiteVertexSplit[_], _2 = 0; j < partiteVertexSplit[_ + 1]; ++j)
+	// 	{
+	// 		partiteVertexCSR[j] = v2partiteSet[_][_2++];
+	// 	}
+	// 	sort(partiteVertexCSR + partiteVertexSplit[_], partiteVertexCSR + partiteVertexSplit[_ + 1]);
+	// }
+	FILE * file2;
+	vector<int> R2(g->n);
+	// vector<int> R3(g->n);
+	string R2Path = edgelist;
+	// string R3Path = edgelist;
+	R2Path += "R2";
+	// R3Path += "R3";
+
+	file2 = fopen(R2Path.c_str(), "r");
+	for (int i = 0; i < g->n; ++i)
+	{
+		fscanf(file2, "%u", &(R2[i]));
+	}
+	fclose(file2);
+
+	// file2 = fopen(R3Path.c_str(), "r");
+	// for (int i = 0; i < g->n; ++i)
+	// {
+	// 	fscanf(file2, "%u", &(R3[i]));
+	// }
+	// fclose(file2);
+
+
+	adj.resize(g->n);
+	for (int i = 0; i < g->e; ++i)
+	{
+		int s, t;
+		fscanf(file, "%u %u", &s, &t);
+		if (!R2[s] || !R2[t]) continue;
+		if (v2m[s] == v2m[t])
+			cout << "?????????????" << s << " " << t << endl;
+		assert(v2m[s] != v2m[t]);
+		adj[s].emplace_back(t);
+		adj[t].emplace_back(s);
 	}
 	fclose(file);
+
+	vector<int> goodV(g->n);
+	for (int i = 0; i < g->n; ++i)
+	{
+		map<int, bool> goodSt;
+		for (auto j : adj[i])
+		{
+			goodSt[v2m[j]] = true;
+		}
+		assert(goodSt.size() < partiteSize);
+		if (goodSt.size() != partiteSize - 1)
+			adj[i].clear();
+	}
+
+	file = fopen(edgelist, "r");
+	fscanf(file, "%u %u", &(g->n), &(g->e));
+	for (int i = 0; i < g->n; ++i) {
+		int x;
+		fscanf(file, "%u", &x);
+	}
+	int cnt_ = 0;
+	for (int i = 0; i < g->e; ++i)
+	{
+		int s, t;
+		fscanf(file, "%u %u", &s, &t);
+
+		if (adj[s].empty() || adj[t].empty()) continue;
+		if (!R2[s] || !R2[t]) continue;
+
+		g->edges[cnt_].s = s;
+		g->edges[cnt_].t = t;
+		cnt_++;
+	}
 //	g->n++;
 	g->e = cnt_;
-//	g->edges = realloc(g->edges, g->e * sizeof(edge));
-
+	cout << g->e << endl;
+	int j = 0;
+	vector<int> newv2m(g->n);
+	vector<int> ls(g->n);
+	for (int i = 0; i < g->n; ++i)
+	{
+		if (adj[i].empty()) continue;
+		newv2m[j] = v2m[i];
+		ls[i] = j;
+		j++;
+	}
+	g->n = j;
+	for (int i = 0; i < g->e; ++i)
+	{
+		g->edges[i].s = ls[g->edges[i].s];
+		g->edges[i].t = ls[g->edges[i].t];
+		assert(newv2m[g->edges[i].s] != newv2m[g->edges[i].t]);
+		if (g->edges[i].s > g->edges[i].t)
+			swap(g->edges[i].s, g->edges[i].t);
+	}
+	for (int i = 0; i < newv2m.size(); i++)
+		v2m[i] = newv2m[i];
+	vec.resize(partiteSize);
+	for (int i = 0; i < g->n; ++i)
+	{
+		vec[v2m[i]].emplace_back(i);
+	}
 	return g;
 }
-
 
 ///// CORE ordering /////////////////////
 
@@ -156,7 +307,6 @@ typedef struct {
 	unsigned *pt;	// pointers to nodes.
 	keyvalue *kv; // nodes.
 } bheap;
-
 
 bheap *construct(unsigned n_max) {
 	unsigned i;
@@ -402,31 +552,41 @@ void mkspecial(specialsparse *g, unsigned char k) {
 	unsigned char *lab;
 
 	d = (unsigned *)calloc(g->n, sizeof(unsigned));
+	g->rd = (unsigned *)calloc(g->n, sizeof(unsigned));
 
 	for (i = 0; i < g->e; i++) {
 		d[g->edges[i].s]++;
+		g->rd[g->edges[i].t]++;
 	}
 	g->cd = (unsigned *)malloc((g->n + 1) * sizeof(unsigned));
+	g->rcd = (unsigned *)malloc((g->n + 1) * sizeof(unsigned));
 	ns = 0;
 	g->cd[0] = 0;
+	g->rcd[0] = 0;
 	max = 0;
+	int max2 = 0;
 	sub = (unsigned *)malloc(g->n * sizeof(unsigned));
 	lab = (unsigned char *)malloc(g->n * sizeof(unsigned char));
 	for (i = 1; i < g->n + 1; i++) {
 		g->cd[i] = g->cd[i - 1] + d[i - 1];
+		g->rcd[i] = g->rcd[i - 1] + g->rd[i - 1];
 		max = (max > d[i - 1]) ? max : d[i - 1];
+		max2 = (max2 > g->rd[i - 1]) ? max2 : g->rd[i - 1];
 		sub[ns++] = i - 1;
 		d[i - 1] = 0;
+		g->rd[i - 1] = 0;
 		lab[i - 1] = k;
 	}
 	printf("max degree = %u\n", max);
 
 	g->adj = (unsigned *)malloc(g->e * sizeof(unsigned));
+	g->radj = (unsigned *)malloc(g->e * sizeof(unsigned));
 
 	for (i = 0; i < g->e; i++) {
 		g->adj[g->cd[g->edges[i].s] + d[g->edges[i].s]++] = g->edges[i].t;
+		g->radj[g->rcd[g->edges[i].t] + g->rd[g->edges[i].t]++] = g->edges[i].s;
 	}
-	// free(g->edges);
+	free(g->edges);
 
 
 	g->ns = (unsigned *)malloc((k + 1) * sizeof(unsigned));
@@ -443,106 +603,225 @@ void mkspecial(specialsparse *g, unsigned char k) {
 	g->sub[k] = sub;
 
 	g->lab = lab;
+
+	// for (i = 0; i < g->n; i++)
+	// {
+	// 	if (color[Index[i]] < partiteSize - 1)
+	// 		partiteSetSize[v2m[Index[i]]]--;
+	// }
+
+// #if DEBUG
+	fstream f("../nei.csv", ios::out);
+	for (int i = 0; i < g->n; i++)
+	{
+		f << "#" << i << " ";
+		auto end = g->cd[i] + g->d[partiteSize][i];
+		auto rend = g->rcd[i] + g->rd[i];
+		int ne;
+		for (ne = g->cd[i]; ne < end; ne++)
+			f << g->adj[ne] << " ";
+		f << "| ";
+		for (ne = g->rcd[i]; ne < rend; ne++)
+			f << g->radj[ne] << " ";
+		f << endl;
+	}
+	f.close();
+// 	for (int i = 0; i < g->n; ++i)
+// 	{
+// 		cout << i << "(" << color[Index[i]] << ") ";
+// 	}
+// 	cout << endl;
+// #endif
 }
 #include <vector>
 using namespace std;
 
 int N = 4, K;
+
 vector<int> res;
-void dfs(int u, int p, unsigned long long *n)
+size_t dfs_count;
+int cliNum;
+int* vMap;
+int vMapCnt;
+vector<vector<int>> allRes;
+
+int* cnt;
+// bool checkSt[4];
+// int checkVertex[22470];
+map<int, vector<vector<int>>> his;
+map<int, bool> st2;
+int dfs_cnt;
+
+void dfs(specialsparse *g, int u, int p, unsigned long long *n)
 {
-	if (u + N > K) return;
-	if (u + N == K)
+	if (u == K)
 	{
-		for (auto vv : res) cout << vv << " ";
+#if DEBUG
+		cout << "cliNum #" << ++cliNum << ": ";
+		map<int, bool> kinds;
+		for (auto vv : res)
+		{
+			kinds[v2m[vv]] = true;
+			cout << vv << "(" << v2m[vv] << ") ";
+		}
 		cout << endl;
+		assert(kinds.size() == partiteSize);
+		// allRes.emplace_back(res);
+		int sum = 0;
+		for (auto vv : res) sum += vv;
+		auto bk = res;
+		sort(bk.begin(), bk.end());
+		if (his[sum].empty()) his[sum].emplace_back(bk);
+		else
+		{
+			for (auto vv : his[sum])
+			{
+				bool pass = true;
+				for (int j = 0; j < vv.size(); j++)
+				{
+					if (vv[j] != bk[j])
+					{
+						pass = false;
+						break;
+					}
+				}
+				if (pass)
+				{
+					cout << "cliNum #" << *n << " same!!!" << endl;
+					exit(0);
+				}
+			}
+			his[sum].emplace_back(bk);
+		}
+#endif
 		(*n)++;
 		return;
 	}
-	for (int i = p; i < CandidateCnt && CandidateCnt - i >= K - N - p; ++i)
+	int i, j, end, rend;
+	for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - p; ++i)
 	{
-		res.emplace_back(Candidate[i]);
-		dfs(u + 1, i + 1, n);
-		res.pop_back();
+		end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
+		rend = g->rcd[Candidate[i]] + g->rd[Candidate[i]];
+
+		for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
+		for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
+		if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]])
+		{
+			res.emplace_back(Candidate[i]);
+			cnt[v2m[Candidate[i]]]++;
+#if DEBUG
+			cout << "in " << dfs_cnt << " " << i << " add " << Candidate[i] << endl;
+			dfs_cnt++;
+#endif
+			dfs(g, u + 1, i + 1, n);
+#if DEBUG
+			dfs_cnt--;
+			cout << "back " << dfs_cnt << " " << i << " del " << Candidate[i] << endl;
+#endif
+
+			cnt[v2m[Candidate[i]]]--;
+			res.pop_back();
+		}
+		for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
+		for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
 	}
 }
 
-
-size_t dfs_count;
-map<int, bool> cli;
-int cliNum;
 void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
-	unsigned i, j, k, end, u, v, w;
-	dfs_count++;
+	unsigned i, j, k, end,end_, rend,rend_, u, v, w, ne;
 	if (l == 2) {
+		for (auto &_ : res) vMap[v2m[_]] = _;
 		for (auto &_ : res) {
-			cli[_] = true;
-			for (auto &ne : adj[_]) {
-				if (st[ne]) continue;
-				visCNT[ne]++;
-			}
+		end = g->cd[_] + g->d[partiteSize][_];
+			rend = g->rcd[_] + g->rd[_];
+			for (ne = g->cd[_]; ne < end; ne++) visCNT[g->adj[ne]]++;
+			for (ne = g->rcd[_]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 		}
-
 		for (i = 0; i < g->ns[2]; i++) {//list all edges
 			u = g->sub[2][i];
-			res.emplace_back(u);
-			// (*n)+=g->d[2][u];
-			cli[u] = true;
-			for (auto &ne : adj[u]) {
-				if (st[ne]) continue;
-				visCNT[ne]++;
-			}
+			vMap[v2m[u]] = u;
+			end = g->cd[u] + g->d[partiteSize][u];
+			rend = g->rcd[u] + g->rd[u];
+			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]++;
+			for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 			end = g->cd[u] + g->d[2][u];
-			for (j = g->cd[u]; j < end; j++) {
-				// map<int, bool> kinds;
-					// kinds[v2m[vv]] = true;
-				// kinds[v2m[u]] = true;
-				// kinds[v2m[g->adj[j]]] = true;
 
-				//listing here!!!  // NOTE THAT WE COULD DO (*n)+=g->d[2][u] to be much faster (for counting only); !!!!!!!!!!!!!!!!!!
-				cli[g->adj[j]] = true;
+			res.emplace_back(u);
+			for (j = g->cd[u]; j < end; j++) {
+				vMap[v2m[g->adj[j]]] = g->adj[j];
 				res.emplace_back(g->adj[j]);
-				cout << "cliNum #" << ++cliNum << ": ";
-				for (auto _ : res)
-					cout << _ << " ";
-				cout << endl;
-				for (auto &ne : adj[g->adj[j]]) {
-					if (st[ne]) continue;
-					visCNT[ne]++;
-				}
-				for (int _ = 0; _ < g->n; _++)
+ 				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
+ 				rend_ = g->rcd[g->adj[j]] + g->rd[g->adj[j]];
+				cout << "#" << *n << ": ";
+				for (auto I : res) cout << I << " ";
+
+				if (*n == 2)
+					cout << endl;
+
+				cout << "Candidate: ";
+ 				for (ne = g->cd[g->adj[j]]; ne < end_; ne++)
+ 				{
+ 					visCNT[g->adj[ne]]++;
+ 					if (visCNT[ne] == partiteSize - 1 && ne > vMap[v2m[ne]])
+ 					{
+ 						cout << Candidate[CandidateCnt] << " ";
+ 						Candidate[CandidateCnt++] = ne;
+ 					}
+ 				}
+ 				for (ne = g->rcd[g->adj[j]]; ne < rend_; ne++)
+ 				{
+ 					visCNT[g->radj[ne]]++;
+ 					if (visCNT[ne] == partiteSize - 1 && ne > vMap[v2m[ne]])
+ 					{
+ 						cout << Candidate[CandidateCnt] << " ";
+ 						Candidate[CandidateCnt++] = ne;
+ 					}
+ 				}
+
+				for (auto ne : vec[v2m[g->adj[j]]])
 				{
-					if (visCNT[_] >= 3 && (cli.find(_) == cli.end() || cli[_] == false))
+					if (visCNT[ne] == partiteSize - 1 && ne > g->adj[j])
 					{
-						Candidate[CandidateCnt++] = _;
+						cout << Candidate[CandidateCnt] << " ";
+						Candidate[CandidateCnt++] = ne;
 					}
 				}
-				// cout << endl;
-				dfs(0, 0, n);
-				// (*n)++;
-				CandidateCnt = 0;
-				res.pop_back();
-				cli[g->adj[j]] = false;
-				for (auto &ne : adj[g->adj[j]]) {
-					if (st[ne]) continue;
-					visCNT[ne]--;
-				}
-			}
-			cli[u] = false;
-			res.pop_back();
-			for (auto &ne : adj[u]) {
-				if (st[ne]) continue;
-				visCNT[ne]--;
-			}
-		}
+				cout << endl;
 
-		for (auto &_ : res) {
-			for (auto &ne : adj[_]) {
-				if (st[ne]) continue;
-				visCNT[ne] = 0;
+
+
+				for (int I = 0; I < partiteSize; I++) cnt[I] = 1;
+				// dfs(g, partiteSize, 0, n);
+				(*n)++;
+				if (*n > 50) exit(0);
+				CandidateCnt = 0;
+
+				for (auto I : res)
+				{
+					end_ = g->cd[I] + g->d[partiteSize][I];
+					rend_ = g->rcd[I] + g->rd[I];
+					for (ne = g->cd[I]; ne < end_; ne++) st[ne] = false;
+					for (ne = g->rcd[I]; ne < rend_; ne++) st[ne] = false;
+				}
+				res.pop_back();
+				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
+				rend_ = g->rcd[g->adj[j]] + g->rd[g->adj[j]];
+				for (ne = g->cd[g->adj[j]]; ne < end_; ne++) visCNT[g->adj[ne]]--;
+				for (ne = g->rcd[g->adj[j]]; ne < rend_; ne++) visCNT[g->radj[ne]]--;
 			}
+			res.pop_back();
+
+			end = g->cd[u] + g->d[partiteSize][u];
+			rend = g->rcd[u] + g->rd[u];
+			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]--;
+			for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]--;
 		}
-		cli.clear();
+		for (auto &_ : res) {
+			end = g->cd[_] + g->d[partiteSize][_];
+			rend = g->rcd[_] + g->rd[_];
+			for (ne = g->cd[_]; ne < end; ne++) visCNT[g->adj[ne]] = 0;
+			for (ne = g->rcd[_]; ne < rend; ne++) visCNT[g->radj[ne]] = 0;
+		}
 		return;
 	}
 
@@ -551,6 +830,7 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 
 	for (i = 0; i < g->ns[l]; i++) {
 		u = g->sub[l][i];
+
 		if (color[Index[u]] < l - 1)
 			continue;
 		g->ns[l - 1] = 0;
@@ -589,31 +869,32 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 		}
 	}
 }
-#include <chrono>
-#include <fstream>
-#define Get_Time() std::chrono::high_resolution_clock::now()
-#define Duration(start) std::chrono::duration_cast< \
-std::chrono::microseconds>(Get_Time() - start).count() / (float)1000
-#define Print_Time(str, start) std::cout << str << Duration(start) << " ms" << std::endl
 
 int main(int argc, char** argv) {
+	// cout << getTime() << endl;
+	auto mp = get_index_mem();
+	auto m1 = mp["pk"];
 	specialsparse* g;
-	// unsigned char k = atoi(argv[1]);
-	unsigned char k = 6;
+	// partiteSize = atoi(argv[1]);
+	partiteSize = 4;
+	// unsigned char k = atoi(argv[2]);
+	unsigned char k = 5;
 	K = k;
 	unsigned long long n;
 	time_t t0, t1, t2;
 	t1 = time(NULL);
 	t0 = t1;
 
-	// printf("Reading edgelist from file %s\n", argv[2]);
-	// g = readedgelist(argv[2]);
-
-	char pa[100] = "../data/test";
+	// printf("Reading edgelist from file %s\n", argv[3]);
+	// g = readedgelist(argv[3]);
+	// facebook amazon
+	char pa[100] = "../../Dataset/dblpZJ4.csv";
+	// char pa[100] = "../data/test";
 	g = readedgelist(pa);
 	printf("Number of nodes = %u\n", g->n);
 	printf("Number of edges = %u\n", g->e);
-
+	printf("Number of partiteSize = %u\n", partiteSize);
+	cnt = new int[partiteSize];
 	t2 = time(NULL);
 	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
 	t1 = t2;
@@ -623,7 +904,8 @@ int main(int argc, char** argv) {
 	ord_color_relabel(g);
 
 	mkspecial(g, partiteSize);
-
+	mp = get_index_mem();
+	auto graphSize = mp["pk"];
 	printf("Number of nodes = %u\n", g->n);
 	printf("Number of edges = %u\n", g->e);
 
@@ -634,20 +916,37 @@ int main(int argc, char** argv) {
 	auto ti= Get_Time();
 	printf("Iterate over all cliques\n");
 
+	vMap = new int[g->n];
+	memset(vMap, -1, g->n * sizeof(int));
+
 	n = 0;
 	kclique(partiteSize, g, &n);
 
 	printf("Number of %u-cliques: %llu\n", k, n);
 	Print_Time("All Time: ", ti);
 	cout << "dfs_count: " << dfs_count << endl;
-//	fstream fs = fstream("../../base_res.csv", ios::app);
-//	fs << (int)k << "," << n << "," << Duration(ti) << endl;
-//	if (int(k) == 20)
-//		fs << endl;
-	// t2 = time(NULL);
-	// printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
-	// t1 = t2;
+	mp = get_index_mem();
+	auto m2 = mp["pk"];
+	fstream fs = fstream("../base_res.csv", ios::app);
+	fs << argv[3] << ",comb," << g->n << "," << g->e << "," << (int)k << "," << n << "," << Duration(ti) << "," << m2 - m1 << "," << graphSize - m1 << endl;
+	t2 = time(NULL);
+	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
+	t1 = t2;
 
+#if DEBUG
+	for (auto& i : allRes) sort(i.begin(), i.end());
+	sort(allRes.begin(), allRes.end());
+	cout << endl;
+	for (int i = 0; i < allRes.size(); i++)
+	{
+		cout << "#" << i + 1 << ": ";
+		for (auto j : allRes[i])
+		{
+			cout << j << " ";
+		}
+		cout << endl;
+	}
+#endif
 	freespecialsparse(g, partiteSize);
 
 	free(color);
