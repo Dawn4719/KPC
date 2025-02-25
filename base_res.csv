@@ -111,3 +111,37 @@ SHELL=/usr/bin/zsh,comb,75060,297427,4,833123,23765.6,36640,36640
 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,comb,75060,297427,4,833123,12200.3,36640,36640
 WAYLAND_DISPLAY=wayland-0,comb,59413,261378,4,833123,3695.29,28476,28476
 WSLENV=BASH_ENV/u,comb,59413,261378,5,4746379,5062.54,28476,28476
+HOSTTYPE=x86_64,comb,59413,261378,5,32114871,12401.6,28476,28476
+LOGNAME=qsl,comb,59413,261378,5,29769138,10488.1,28072,28072
+PULSE_SERVER=unix:/mnt/wslg/PulseServer,comb,59413,261378,5,29770301,10940.9,28072,28072
+WSL_INTEROP=/run/WSL/23396_interop,comb,59413,261378,5,20071601,9647.96,28072,28072
+SHELL=/usr/bin/zsh,comb,59413,261378,5,20191460,8997.96,28072,28072
+XDG_RUNTIME_DIR=/run/user/1000/,comb,59413,261378,5,20538905,9732.18,28072,28072
+TERM=xterm-256color,comb,59413,261378,5,32114871,12650.7,28516,28516
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/VMware/VMware Workstation/bin/:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Zero Install:/mnt/c/Program Files/WezTerm:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR:/mnt/c/Users/Administrator/AppData/Local/Microsoft/WindowsApps,comb,59413,261378,5,32114871,14608.6,28516,28516
+WSL_INTEROP=/run/WSL/23396_interop,comb,59413,261378,5,32114871,11886.5,28516,28516
+PULSE_SERVER=unix:/mnt/wslg/PulseServer,comb,59413,261378,5,32114871,11874.3,28516,28516
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,comb,59413,261378,5,32114871,11286.9,28516,28516
+BASH_ENV=/etc/bash.bashrc,comb,59413,261378,5,32114871,11295.6,28516,28516
+XDG_RUNTIME_DIR=/run/user/1000/,comb,59413,261378,5,32114871,11400.9,28516,28516
+WSL_DISTRO_NAME=Ubuntu-20.04,comb,59413,261378,5,32114871,11352.4,28516,28516
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/VMware/VMware Workstation/bin/:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Zero Install:/mnt/c/Program Files/WezTerm:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR:/mnt/c/Users/Administrator/AppData/Local/Microsoft/WindowsApps,comb,59413,261378,5,32114871,11255.9,28072,28072
+SHLVL=0,comb,59413,261378,4,833123,2791.69,28072,28072
+XDG_RUNTIME_DIR=/run/user/1000/,comb,59413,261378,5,32114871,11263.1,28072,28072
+TERM=xterm-256color,comb,59413,261378,5,0,2774.07,28072,28072
+WSL_DISTRO_NAME=Ubuntu-20.04,comb,59413,261378,5,32114871,2694.74,28072,28072
+WSL2_GUI_APPS_ENABLED=1,comb,59413,261378,5,0,3773.7,28072,28072
+BASH_ENV=/etc/bash.bashrc,comb,59413,261378,5,0,2708.04,28072,28072
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,comb,59413,261378,5,32114871,2708.01,28072,28072
+WAYLAND_DISPLAY=wayland-0,comb,59413,261378,6,845334436,11718.4,28072,28072
+BASH_ENV=/etc/bash.bashrc,comb,59413,261378,6,0,17346.7,28072,28072
+SHELL=/usr/bin/zsh,comb,59413,261378,6,2910199,11334.1,28072,28072
+WSLENV=BASH_ENV/u,comb,59413,261378,6,2910199,11636.9,28072,28072
+OLDPWD=/home/qsl/exp/KPC/cmake-build-debug,comb,59413,261378,5,32114871,11214,28072,28072
+WSL_INTEROP=/run/WSL/23396_interop,comb,59413,261378,5,32114871,11268.4,28072,28072
+HOSTTYPE=x86_64,comb,59413,261378,6,2910199,11569.4,28072,28072
+SHELL=/usr/bin/zsh,comb,59413,261378,6,842424237,244950,28072,28072
+USER=qsl,comb,59413,261378,6,2910199,11399.5,28072,28072
+DISPLAY=:0,comb,59413,261378,6,2910199,11331.9,28072,28072
+LOGNAME=qsl,comb,59413,261378,6,2910199,11333,28072,28072
+WSL_DISTRO_NAME=Ubuntu-20.04,comb,59413,261378,6,2910199,11388,28072,28072
