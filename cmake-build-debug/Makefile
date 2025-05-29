@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named DDegCol
+# Target rules for targets named base2
 
 # Build rule for target.
-DDegCol: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 DDegCol
-.PHONY : DDegCol
+base2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 base2
+.PHONY : base2
 
 # fast build rule for target.
-DDegCol/fast:
-	$(MAKE) -f CMakeFiles/DDegCol.dir/build.make CMakeFiles/DDegCol.dir/build
-.PHONY : DDegCol/fast
+base2/fast:
+	$(MAKE) -f CMakeFiles/base2.dir/build.make CMakeFiles/base2.dir/build
+.PHONY : base2/fast
 
 #=============================================================================
 # Target rules for targets named baseline
@@ -187,33 +187,6 @@ main: cmake_check_build_system
 main/fast:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 .PHONY : main/fast
-
-DDegCol.o: DDegCol.cpp.o
-
-.PHONY : DDegCol.o
-
-# target to build an object file
-DDegCol.cpp.o:
-	$(MAKE) -f CMakeFiles/DDegCol.dir/build.make CMakeFiles/DDegCol.dir/DDegCol.cpp.o
-.PHONY : DDegCol.cpp.o
-
-DDegCol.i: DDegCol.cpp.i
-
-.PHONY : DDegCol.i
-
-# target to preprocess a source file
-DDegCol.cpp.i:
-	$(MAKE) -f CMakeFiles/DDegCol.dir/build.make CMakeFiles/DDegCol.dir/DDegCol.cpp.i
-.PHONY : DDegCol.cpp.i
-
-DDegCol.s: DDegCol.cpp.s
-
-.PHONY : DDegCol.s
-
-# target to generate assembly for a file
-DDegCol.cpp.s:
-	$(MAKE) -f CMakeFiles/DDegCol.dir/build.make CMakeFiles/DDegCol.dir/DDegCol.cpp.s
-.PHONY : DDegCol.cpp.s
 
 DegenCol.o: DegenCol.cpp.o
 
@@ -296,6 +269,33 @@ R3.cpp.s:
 	$(MAKE) -f CMakeFiles/R3.dir/build.make CMakeFiles/R3.dir/R3.cpp.s
 .PHONY : R3.cpp.s
 
+base2.o: base2.cpp.o
+
+.PHONY : base2.o
+
+# target to build an object file
+base2.cpp.o:
+	$(MAKE) -f CMakeFiles/base2.dir/build.make CMakeFiles/base2.dir/base2.cpp.o
+.PHONY : base2.cpp.o
+
+base2.i: base2.cpp.i
+
+.PHONY : base2.i
+
+# target to preprocess a source file
+base2.cpp.i:
+	$(MAKE) -f CMakeFiles/base2.dir/build.make CMakeFiles/base2.dir/base2.cpp.i
+.PHONY : base2.cpp.i
+
+base2.s: base2.cpp.s
+
+.PHONY : base2.s
+
+# target to generate assembly for a file
+base2.cpp.s:
+	$(MAKE) -f CMakeFiles/base2.dir/build.make CMakeFiles/base2.dir/base2.cpp.s
+.PHONY : base2.cpp.s
+
 baseline.o: baseline.cpp.o
 
 .PHONY : baseline.o
@@ -357,16 +357,13 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... DDegCol"
+	@echo "... base2"
 	@echo "... rebuild_cache"
 	@echo "... baseline"
 	@echo "... R3"
 	@echo "... R2"
 	@echo "... DegenCol"
 	@echo "... main"
-	@echo "... DDegCol.o"
-	@echo "... DDegCol.i"
-	@echo "... DDegCol.s"
 	@echo "... DegenCol.o"
 	@echo "... DegenCol.i"
 	@echo "... DegenCol.s"
@@ -376,6 +373,9 @@ help:
 	@echo "... R3.o"
 	@echo "... R3.i"
 	@echo "... R3.s"
+	@echo "... base2.o"
+	@echo "... base2.i"
+	@echo "... base2.s"
 	@echo "... baseline.o"
 	@echo "... baseline.i"
 	@echo "... baseline.s"

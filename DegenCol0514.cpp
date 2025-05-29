@@ -1,10 +1,8 @@
 #include <algorithm>
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <time.h>
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -147,7 +145,10 @@ int partiteSize;
 int* partiteVertexCSR;
 int* partiteVertexSplit;
 vector<int> partiteSetSize;
-
+int* vec;
+int vecSize;
+int minSet;
+// vector<vector<int>> vec4;
 specialsparse* readedgelist(char* edgelist) {
 	specialsparse *g = (specialsparse *)malloc(sizeof(specialsparse));
 	FILE *file;
@@ -164,41 +165,26 @@ specialsparse* readedgelist(char* edgelist) {
 	st = new bool[g->n];
 	visCNT = new int[g->n];
 	Candidate = new int[g->n];
-	partiteVertexCSR = new int[g->n];
+	// partiteVertexCSR = new int[g->n];
 
 	memset(visCNT, 0, sizeof(int) * g->n);
 	memset(st, 0, sizeof(bool) * g->n);
 	memset(Candidate, 0, sizeof(int) * g->n);
 
-	map<int, int> v2partiteSet;
-	partiteSetSize.resize(partiteSize);
 	for (int i = 0; i < g->n; ++i) {
 		int x, y;
 		// fscanf(file, " %c %u %u", &c, &x, &y);
 		fscanf(file, "%u", &x);
 		v2m[i] = x;
-		// v2partiteSet[x].emplace_back(i);
-		partiteSetSize[x]++;
 	}
-	// partiteVertexSplit = new int[v2partiteSet.size() + 1];
-	// partiteVertexSplit[0] = 0;
-	// for (int _ = 0; _ < v2partiteSet.size(); ++_)
-	// 	partiteVertexSplit[_ + 1] = partiteVertexSplit[_] + v2partiteSet[_].size();
-	// for (int _ = 0; _ < v2partiteSet.size(); ++_)
-	// {
-	// 	for (int j = partiteVertexSplit[_], _2 = 0; j < partiteVertexSplit[_ + 1]; ++j)
-	// 	{
-	// 		partiteVertexCSR[j] = v2partiteSet[_][_2++];
-	// 	}
-	// 	sort(partiteVertexCSR + partiteVertexSplit[_], partiteVertexCSR + partiteVertexSplit[_ + 1]);
-	// }
+
 	FILE * file2;
 	vector<int> R2(g->n);
-	// vector<int> R3(g->n);
+	vector<int> R3(g->n);
 	string R2Path = edgelist;
-	// string R3Path = edgelist;
+	string R3Path = edgelist;
 	R2Path += "R2";
-	// R3Path += "R3";
+	R3Path += "R3";
 
 	file2 = fopen(R2Path.c_str(), "r");
 	for (int i = 0; i < g->n; ++i)
@@ -206,14 +192,14 @@ specialsparse* readedgelist(char* edgelist) {
 		fscanf(file2, "%u", &(R2[i]));
 	}
 	fclose(file2);
-
-	// file2 = fopen(R3Path.c_str(), "r");
-	// for (int i = 0; i < g->n; ++i)
-	// {
-	// 	fscanf(file2, "%u", &(R3[i]));
-	// }
-	// fclose(file2);
-
+	cout << "Finish Read R2" << endl;
+	file2 = fopen(R3Path.c_str(), "r");
+	for (int i = 0; i < g->n; ++i)
+	{
+		fscanf(file2, "%u", &(R3[i]));
+	}
+	fclose(file2);
+	cout << "Finish Read R3" << endl;
 
 	adj.resize(g->n);
 	for (int i = 0; i < g->e; ++i)
@@ -221,6 +207,7 @@ specialsparse* readedgelist(char* edgelist) {
 		int s, t;
 		fscanf(file, "%u %u", &s, &t);
 		if (!R2[s] || !R2[t]) continue;
+		if (!R3[s] || !R3[t]) continue;
 		if (v2m[s] == v2m[t])
 			cout << "?????????????" << s << " " << t << endl;
 		assert(v2m[s] != v2m[t]);
@@ -248,6 +235,7 @@ specialsparse* readedgelist(char* edgelist) {
 		int x;
 		fscanf(file, "%u", &x);
 	}
+
 	int cnt_ = 0;
 	for (int i = 0; i < g->e; ++i)
 	{
@@ -256,7 +244,7 @@ specialsparse* readedgelist(char* edgelist) {
 
 		if (adj[s].empty() || adj[t].empty()) continue;
 		if (!R2[s] || !R2[t]) continue;
-
+		if (!R3[s] || !R3[t]) continue;
 		g->edges[cnt_].s = s;
 		g->edges[cnt_].t = t;
 		cnt_++;
@@ -275,14 +263,42 @@ specialsparse* readedgelist(char* edgelist) {
 		j++;
 	}
 	g->n = j;
+
 	for (int i = 0; i < g->e; ++i)
 	{
 		g->edges[i].s = ls[g->edges[i].s];
 		g->edges[i].t = ls[g->edges[i].t];
 		assert(newv2m[g->edges[i].s] != newv2m[g->edges[i].t]);
+		if (g->edges[i].s > g->edges[i].t)
+			swap(g->edges[i].s, g->edges[i].t);
 	}
+
 	for (int i = 0; i < newv2m.size(); i++)
 		v2m[i] = newv2m[i];
+
+	partiteSetSize.resize(partiteSize);
+	for (int i = 0; i < g->n; ++i)
+		partiteSetSize[v2m[i]]++;
+
+	minSet = 0;
+	for (int i = 0; i < partiteSize; ++i)
+	{
+		if (partiteSetSize[minSet] > partiteSetSize[i])
+		{
+			minSet = i;
+		}
+		cout << "#" << partiteSetSize[i] << endl;
+	}
+	cout << "minSet: " << minSet << endl;
+	// vec4.resize(partiteSize);
+	vec = new int[partiteSetSize[minSet]];
+	for (int i = 0; i < g->n; ++i)
+	{
+		// vec4[v2m[i]].emplace_back(i);
+		if (v2m[i] == minSet)
+			vec[vecSize++] = i;
+	}
+	assert(vecSize == partiteSetSize[minSet]);
 	return g;
 }
 
@@ -603,20 +619,21 @@ void mkspecial(specialsparse *g, unsigned char k) {
 	// }
 
 // #if DEBUG
-	for (int i = 0; i < g->n; i++)
-	{
-		cout << "#" << i << " ";
-		auto end = g->cd[i] + g->d[partiteSize][i];
-		auto rend = g->rcd[i] + g->rd[i];
-		int ne;
-		for (ne = g->cd[i]; ne < end; ne++)
-			cout << g->adj[ne] << " ";
-		cout << "| ";
-		for (ne = g->rcd[i]; ne < rend; ne++)
-			cout << g->radj[ne] << " ";
-		cout << endl;
-	}
-
+	// fstream f("../nei.csv", ios::out);
+	// for (int i = 0; i < g->n; i++)
+	// {
+	// 	f << "#" << i << " ";
+	// 	auto end = g->cd[i] + g->d[partiteSize][i];
+	// 	auto rend = g->rcd[i] + g->rd[i];
+	// 	int ne;
+	// 	for (ne = g->cd[i]; ne < end; ne++)
+	// 		f << g->adj[ne] << " ";
+	// 	f << "| ";
+	// 	for (ne = g->rcd[i]; ne < rend; ne++)
+	// 		f << g->radj[ne] << " ";
+	// 	f << endl;
+	// }
+	// f.close();
 // 	for (int i = 0; i < g->n; ++i)
 // 	{
 // 		cout << i << "(" << color[Index[i]] << ") ";
@@ -642,62 +659,51 @@ int* cnt;
 map<int, vector<vector<int>>> his;
 map<int, bool> st2;
 int dfs_cnt;
-
+int A, B;
+int* partiteCNT;
+int upperK;
 void dfs(specialsparse *g, int u, int p, unsigned long long *n)
 {
+	int i, j, l, end, rend, pa;
 	if (u == K)
 	{
-#if DEBUG
-		cout << "cliNum #" << ++cliNum << ": ";
-		map<int, bool> kinds;
-		for (auto vv : res)
-		{
-			kinds[v2m[vv]] = true;
-			cout << vv << "(" << v2m[vv] << ") ";
-		}
-		cout << endl;
-		assert(kinds.size() == partiteSize);
-		// allRes.emplace_back(res);
-		int sum = 0;
-		for (auto vv : res) sum += vv;
-		auto bk = res;
-		sort(bk.begin(), bk.end());
-		if (his[sum].empty()) his[sum].emplace_back(bk);
-		else
-		{
-			for (auto vv : his[sum])
-			{
-				bool pass = true;
-				for (int j = 0; j < vv.size(); j++)
-				{
-					if (vv[j] != bk[j])
-					{
-						pass = false;
-						break;
-					}
-				}
-				if (pass)
-				{
-					cout << "cliNum #" << *n << " same!!!" << endl;
-					exit(0);
-				}
-			}
-			his[sum].emplace_back(bk);
-		}
-#endif
 		(*n)++;
 		return;
 	}
-	int i, j, end, rend;
-	for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - p; ++i)
-	{
-		end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
-		rend = g->rcd[Candidate[i]] + g->rd[Candidate[i]];
+	if (u == K + K * partiteSize - 1) {
+		for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - u; ++i)
+			if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]])
+			{
+	// for (i = 0; i < partiteSize; ++i)
+	// {
+	// 	pa = true;
+	// 	for (j = 0; j < partiteSize; ++j)
+	// 	{
+	// 		if (abs(cnt[i] - cnt[j]) > A)
+	// 		{
+	// 			pa = false;
+	// 			break;
+	// 		}
+	// 	}
+	// 	if (pa)
+				(*n)++;
+			}
+	// 	return;
+	}
 
-		for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
-		for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
+	for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - u; ++i)
+	// for (i = p; i < CandidateCnt; ++i)
+	{
+		// if (cnt[v2m[Candidate[i]]] > B) continue;
 		if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]])
 		{
+			// if (cnt[v2m[Candidate[i]]] + 1 > 1 + K + A) continue;
+			end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
+			rend = g->rcd[Candidate[i]] + g->rd[Candidate[i]];
+
+			for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
+			for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
+
 			res.emplace_back(Candidate[i]);
 			cnt[v2m[Candidate[i]]]++;
 #if DEBUG
@@ -709,75 +715,114 @@ void dfs(specialsparse *g, int u, int p, unsigned long long *n)
 			dfs_cnt--;
 			cout << "back " << dfs_cnt << " " << i << " del " << Candidate[i] << endl;
 #endif
-
 			cnt[v2m[Candidate[i]]]--;
 			res.pop_back();
+
+			for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
+			for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
 		}
-		for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
-		for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
 	}
 }
 
 void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
-	unsigned i, j, k, end,end_, rend,rend_, u, v, w, ne;
+	unsigned i, j, k, end, end_, rend, rend_, u, v, w, ne;
 	if (l == 2) {
 		for (auto &_ : res) vMap[v2m[_]] = _;
 		for (auto &_ : res) {
-		end = g->cd[_] + g->d[partiteSize][_];
+			end = g->cd[_] + g->d[partiteSize][_];
 			rend = g->rcd[_] + g->rd[_];
 			for (ne = g->cd[_]; ne < end; ne++) visCNT[g->adj[ne]]++;
 			for (ne = g->rcd[_]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 		}
 		for (i = 0; i < g->ns[2]; i++) {//list all edges
 			u = g->sub[2][i];
-			res.emplace_back(u);
 			vMap[v2m[u]] = u;
-			// for (auto &ne : adj[u]) visCNT[ne]++;
 			end = g->cd[u] + g->d[partiteSize][u];
 			rend = g->rcd[u] + g->rd[u];
-			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]++;
+			bool go = true;
+			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]++; // COLOR CSR
 			for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 			end = g->cd[u] + g->d[2][u];
+
+			res.emplace_back(u);
 			for (j = g->cd[u]; j < end; j++) {
 				vMap[v2m[g->adj[j]]] = g->adj[j];
- 				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
- 				rend_ = g->rcd[g->adj[j]] + g->rd[g->adj[j]];
+				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
+				rend_ = g->rcd[g->adj[j]] + g->rd[g->adj[j]];
 
 				res.emplace_back(g->adj[j]);
+				for (ne = g->cd[g->adj[j]]; ne < end_; ne++) visCNT[g->adj[ne]]++;
+				for (ne = g->rcd[g->adj[j]]; ne < rend_; ne++) visCNT[g->radj[ne]]++;
 
- 				for (ne = g->cd[g->adj[j]]; ne < end_; ne++) visCNT[g->adj[ne]]++;
- 				for (ne = g->rcd[g->adj[j]]; ne < rend_; ne++) visCNT[g->radj[ne]]++;
-
-				cout << "#" << *n << ": ";
-				for (auto I : res) cout << I << " ";
-
-				if (*n == 2)
-					cout << endl;
-
-// #if DEBUG
-				cout << "Candidate: ";
-// #endif
-				for (int _ = 0; _ < g->n; _++)
+				int minV = res[0];
+				// minSet = v2m[res[0]];
+				for (auto I : res)
 				{
-					// assert(visCNT[_] > partiteSize - 1);
-					if (visCNT[_] == partiteSize - 1 && _ > vMap[v2m[_]]) // v是团中某三个点的邻居
+					st[I] = true;
+					if (v2m[I] == minSet) minV = I;
+					// if (g->d[partiteSize][I] + g->rd[I] + vec4[v2m[I]].size() < g->d[partiteSize][minV] + g->rd[minV] + vec4[v2m[minV]].size())
+					//    minV = I, minSet = v2m[I];
+				}
+				// cout << minSet << " " << minV << endl;
+				// minV = g->adj[j];
+				end_ = g->cd[minV] + g->d[partiteSize][minV];
+				rend_ = g->rcd[minV] + g->rd[minV];
+				memset(partiteCNT, 0, sizeof(int) * partiteSize);
+				// 枚举点的邻居 neighbor
+				for (ne = g->cd[minV]; ne < end_; ne++)
+				{
+					if (visCNT[g->adj[ne]] == partiteSize - 1 && g->adj[ne] > vMap[v2m[g->adj[ne]]] && !st[g->adj[ne]]) // v是团中某三个点的邻居
 					{
-						Candidate[CandidateCnt++] = _;
-// #if DEBUG
-						// st2[Candidate[CandidateCnt - 1]] = true;
-						cout << Candidate[CandidateCnt - 1] << "(" << v2m[Candidate[CandidateCnt - 1]] << ") ";
-// #endif
+						Candidate[CandidateCnt++] = g->adj[ne];
+						partiteCNT[v2m[g->adj[ne]]]++;
 					}
 				}
-// #if DEBUG
-				cout << endl;
-// #endif
+				for (ne = g->rcd[minV]; ne < rend_; ne++)
+				{
+					if (visCNT[g->radj[ne]] == partiteSize - 1 && g->radj[ne] > vMap[v2m[g->radj[ne]]] && !st[g->radj[ne]]) // v是团中某三个点的邻居
+					{
+						Candidate[CandidateCnt++] = g->radj[ne];
+						partiteCNT[v2m[g->adj[ne]]]++;
+					}
+				}
+				// 枚举点所在集合
+				// auto lower = upper_bound(vec4[minSet].begin(), vec4[minSet].end(), minV);
+				// if (lower < vec4[minSet].end())
+				// {
+				// 	for (; lower < vec4[minSet].end(); lower++)
+				// 	{
+				// 		if (visCNT[*lower] == partiteSize - 1 && *lower > minV)
+				// 		{
+				// 			Candidate[CandidateCnt++] = *lower;
+				// 		}
+				// 	}
+				// }
 
-				for (int I = 0; I < partiteSize; I++) cnt[I] = 1;
-				// dfs(g, partiteSize, 0, n);
-				(*n)++;
-				if (*n > 50)
-					exit(0);
+				auto lower = upper_bound(vec, vec + vecSize, minV);
+				if (lower < vec + vecSize)
+				{
+					for (ne = lower - vec; ne < vecSize; ne++)
+					{
+						if (visCNT[vec[ne]] == partiteSize - 1 && vec[ne] > minV)
+						{
+							Candidate[CandidateCnt++] = vec[ne];
+							partiteCNT[v2m[vec[ne]]]++;
+						}
+					}
+				}
+
+				for (auto I : res) st[I] = false;
+				// upperK = 1e9;
+				for (int I = 0; I < partiteSize; I++)
+				{
+					cnt[I] = 1;
+					upperK = min(partiteCNT[I], upperK);
+				}
+				K = upperK;
+				// if (K == partiteSize + 1)
+				// 	for (int I = 0; I < CandidateCnt; I++) (*n)++;
+				// else
+				dfs(g, partiteSize, 0, n);
 				CandidateCnt = 0;
 				res.pop_back();
 				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
@@ -785,8 +830,8 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 				for (ne = g->cd[g->adj[j]]; ne < end_; ne++) visCNT[g->adj[ne]]--;
 				for (ne = g->rcd[g->adj[j]]; ne < rend_; ne++) visCNT[g->radj[ne]]--;
 			}
-
 			res.pop_back();
+
 			end = g->cd[u] + g->d[partiteSize][u];
 			rend = g->rcd[u] + g->rd[u];
 			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]--;
@@ -837,40 +882,52 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 			}
 		}
 		res.emplace_back(u);
+		// vMap[v2m[u]] = u;
+		// end = g->cd[u] + g->d[partiteSize][u];
+		// rend = g->rcd[u] + g->rd[u];
+		// for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]++;
+		// for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 		kclique(l - 1, g, n); // Gv = g[l-1]
 		res.pop_back();
-		for (j = 0; j < g->ns[l - 1]; j++) {//restoring labels
-			v = g->sub[l - 1][j];
-			g->lab[v] = l;
-		}
+		// for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]--;
+		// for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]--;
+		// for (j = 0; j < g->ns[l - 1]; j++) { // restoring labels
+		// 	v = g->sub[l - 1][j];
+		// 	g->lab[v] = l;
+		// }
 	}
 }
 
 int main(int argc, char** argv) {
 	cout << getTime() << endl;
+
 	auto mp = get_index_mem();
 	auto m1 = mp["pk"];
 	specialsparse* g;
-	// partiteSize = atoi(argv[1]);
-	partiteSize = 4;
-	// unsigned char k = atoi(argv[2]);
-	unsigned char k = 5;
+	partiteSize = atoi(argv[1]);
+	// partiteSize = 4;
+	unsigned char k = atoi(argv[2]);
+	// unsigned char k = 6;
 	K = k;
 	unsigned long long n;
 	time_t t0, t1, t2;
 	t1 = time(NULL);
 	t0 = t1;
 
-	// printf("Reading edgelist from file %s\n", argv[3]);
-	// g = readedgelist(argv[3]);
+	printf("Reading edgelist from file %s\n", argv[3]);
+	g = readedgelist(argv[3]);
+	 A = atoi(argv[4]);
+	 B = atoi(argv[5]);
 	// facebook amazon
-	char pa[100] = "../../Dataset/dblpZJ4.csv";
+	// char pa[100] = "../../Dataset/dblpZJ4.csv";
 	// char pa[100] = "../data/test";
-	g = readedgelist(pa);
+	// g = readedgelist(pa);
 	printf("Number of nodes = %u\n", g->n);
 	printf("Number of edges = %u\n", g->e);
 	printf("Number of partiteSize = %u\n", partiteSize);
+	printf("A=%d B=%d\n", A, B);
 	cnt = new int[partiteSize];
+	partiteCNT = new int [partiteSize];
 	t2 = time(NULL);
 	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
 	t1 = t2;
@@ -904,7 +961,7 @@ int main(int argc, char** argv) {
 	mp = get_index_mem();
 	auto m2 = mp["pk"];
 	fstream fs = fstream("../base_res.csv", ios::app);
-	fs << argv[3] << ",comb," << g->n << "," << g->e << "," << (int)k << "," << n << "," << Duration(ti) << "," << m2 - m1 << "," << graphSize - m1 << endl;
+	fs << argv[3] << ",comb," << g->n << "," << g->e << "," << (int)k << "," << n << "," << Duration(ti) << "," << m2 - m1 << "," << graphSize - m1 << "," << A << "," << B << endl;
 	t2 = time(NULL);
 	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
 	t1 = t2;

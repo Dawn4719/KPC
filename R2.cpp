@@ -257,14 +257,17 @@ int main(int argc, char** argv) {
 	specialsparse* g;
 	//unsigned char k = atoi(argv[1]);
 	unsigned char k = 3;
-	unsigned char kk = 4;
+	unsigned char kk = 6;
 	unsigned long long n;
 
 	// time_t t0, t1, t2;
 	// t1 = time(NULL);
 	// t0 = t1;
 	// printf("Reading edgelist from file %s\n", argv[2]);
-	char dataset[100] = "../../Dataset/dblpZJ4.csv";
+	// congressZJ4 CTZJ4 SDZJ4 youtubeZJ4
+	// congressXL5 CTXL5 SDXL5 youtubeXL5
+	// congressXL6 CTXL6 SDXL6 youtubeXL6
+	char dataset[100] = "../../Dataset/KPC_Dataset/SDXL6.csv";
 	g = readedgelist(dataset);
 	// t2 = time(NULL);
 	// printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));

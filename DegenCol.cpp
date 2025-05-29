@@ -32,13 +32,17 @@ typedef struct {
 	// vector<edge> edges;
 	unsigned *ns;//ns[l]: number of nodes in G_l
 	unsigned **d;//d[l]: degrees of G_l
-	unsigned *rd;
+	unsigned **rd;
 	unsigned *cd;//cumulative degree: (starts with 0) length=n+1
 	unsigned *rcd;//cumulative degree: (starts with 0) length=n+1
 	unsigned *adj;//truncated list of neighbors
 	unsigned *radj;//truncated list of neighbors
 	unsigned *rank;//ranking of the nodes according to degeneracy ordering
 	//unsigned *map;//oldID newID correspondance
+	unsigned *dfs_d;
+	unsigned *dfs_rd;
+	unsigned *dfs_adj;
+	unsigned *dfs_radj;
 
 	unsigned char *lab;//lab[i] label of node i
 	unsigned **sub;//sub[l]: nodes in G_l
@@ -183,11 +187,11 @@ specialsparse* readedgelist(char* edgelist) {
 
 	FILE * file2;
 	vector<int> R2(g->n);
-	// vector<int> R3(g->n);
+	vector<int> R3(g->n);
 	string R2Path = edgelist;
-	// string R3Path = edgelist;
+	string R3Path = edgelist;
 	R2Path += "R2";
-	// R3Path += "R3";
+	R3Path += "R3";
 
 	file2 = fopen(R2Path.c_str(), "r");
 	for (int i = 0; i < g->n; ++i)
@@ -196,12 +200,12 @@ specialsparse* readedgelist(char* edgelist) {
 	}
 	fclose(file2);
 
-	// file2 = fopen(R3Path.c_str(), "r");
-	// for (int i = 0; i < g->n; ++i)
-	// {
-	// 	fscanf(file2, "%u", &(R3[i]));
-	// }
-	// fclose(file2);
+	file2 = fopen(R3Path.c_str(), "r");
+	for (int i = 0; i < g->n; ++i)
+	{
+		fscanf(file2, "%u", &(R3[i]));
+	}
+	fclose(file2);
 
 	adj.resize(g->n);
 	for (int i = 0; i < g->e; ++i)
@@ -209,6 +213,7 @@ specialsparse* readedgelist(char* edgelist) {
 		int s, t;
 		fscanf(file, "%u %u", &s, &t);
 		if (!R2[s] || !R2[t]) continue;
+		if (!R3[s] || !R3[t]) continue;
 		if (v2m[s] == v2m[t])
 			cout << "?????????????" << s << " " << t << endl;
 		assert(v2m[s] != v2m[t]);
@@ -245,7 +250,7 @@ specialsparse* readedgelist(char* edgelist) {
 
 		if (adj[s].empty() || adj[t].empty()) continue;
 		if (!R2[s] || !R2[t]) continue;
-
+		if (!R3[s] || !R3[t]) continue;
 		g->edges[cnt_].s = s;
 		g->edges[cnt_].t = t;
 		cnt_++;
@@ -557,15 +562,15 @@ void ord_color_relabel(specialsparse* g) {
 //Building the special graph structure
 void mkspecial(specialsparse *g, unsigned char k) {
 	unsigned i, ns, max;
-	unsigned *d, *sub;
+	unsigned *d, *rd, *sub;
 	unsigned char *lab;
 
 	d = (unsigned *)calloc(g->n, sizeof(unsigned));
-	g->rd = (unsigned *)calloc(g->n, sizeof(unsigned));
+	rd = (unsigned *)calloc(g->n, sizeof(unsigned));
 
 	for (i = 0; i < g->e; i++) {
 		d[g->edges[i].s]++;
-		g->rd[g->edges[i].t]++;
+		rd[g->edges[i].t]++;
 	}
 	g->cd = (unsigned *)malloc((g->n + 1) * sizeof(unsigned));
 	g->rcd = (unsigned *)malloc((g->n + 1) * sizeof(unsigned));
@@ -578,12 +583,12 @@ void mkspecial(specialsparse *g, unsigned char k) {
 	lab = (unsigned char *)malloc(g->n * sizeof(unsigned char));
 	for (i = 1; i < g->n + 1; i++) {
 		g->cd[i] = g->cd[i - 1] + d[i - 1];
-		g->rcd[i] = g->rcd[i - 1] + g->rd[i - 1];
+		g->rcd[i] = g->rcd[i - 1] + rd[i - 1];
 		max = (max > d[i - 1]) ? max : d[i - 1];
-		max2 = (max2 > g->rd[i - 1]) ? max2 : g->rd[i - 1];
+		max2 = (max2 > rd[i - 1]) ? max2 : rd[i - 1];
 		sub[ns++] = i - 1;
 		d[i - 1] = 0;
-		g->rd[i - 1] = 0;
+		rd[i - 1] = 0;
 		lab[i - 1] = k;
 	}
 	printf("max degree = %u\n", max);
@@ -593,7 +598,7 @@ void mkspecial(specialsparse *g, unsigned char k) {
 
 	for (i = 0; i < g->e; i++) {
 		g->adj[g->cd[g->edges[i].s] + d[g->edges[i].s]++] = g->edges[i].t;
-		g->radj[g->rcd[g->edges[i].t] + g->rd[g->edges[i].t]++] = g->edges[i].s;
+		g->radj[g->rcd[g->edges[i].t] + rd[g->edges[i].t]++] = g->edges[i].s;
 	}
 	free(g->edges);
 
@@ -603,12 +608,24 @@ void mkspecial(specialsparse *g, unsigned char k) {
 
 
 	g->d = (unsigned **)malloc((k + 1) * sizeof(unsigned*));
+	g->rd = (unsigned **)malloc((k + 1) * sizeof(unsigned*));
 	g->sub = (unsigned **)malloc((k + 1) * sizeof(unsigned*));
+
+	g->dfs_d = (unsigned *)malloc(g->n * sizeof(unsigned));
+	g->dfs_rd = (unsigned *)malloc(g->n * sizeof(unsigned));
+	g->dfs_adj = (unsigned *)malloc(g->e * sizeof(unsigned));
+	g->dfs_radj = (unsigned *)malloc(g->e * sizeof(unsigned));
+	memset(g->dfs_d, 0, sizeof (unsigned) * g->n);
+	memset(g->dfs_rd, 0, sizeof (unsigned) * g->n);
+
+
 	for (i = 2; i <= k; i++) {
 		g->d[i] = (unsigned *)malloc(g->n * sizeof(unsigned));
+		g->rd[i] = (unsigned *)malloc(g->n * sizeof(unsigned));
 		g->sub[i] = (unsigned *)malloc(max * sizeof(unsigned));
 	}
 	g->d[k] = d;
+	g->rd[k] = rd;
 	g->sub[k] = sub;
 
 	g->lab = lab;
@@ -646,7 +663,7 @@ void mkspecial(specialsparse *g, unsigned char k) {
 using namespace std;
 
 int N = 4, K;
-
+int A, B;
 vector<int> res;
 size_t dfs_count;
 int cliNum;
@@ -663,89 +680,55 @@ int dfs_cnt;
 
 void dfs(specialsparse *g, int u, int p, unsigned long long *n)
 {
-	int i, j, l, end, rend;
-	if (u == K)
+	dfs_count++;
+	int i, j, end, rend;
+	if (u > B * partiteSize) return;
+	if (u >= A * partiteSize)
+	// if (u == K)
 	{
-		(*n)++;
-		return;
-	}
-	if (u == K - 2)
-	{
-#if DEBUG
-		cout << "cliNum #" << ++cliNum << ": ";
-		map<int, bool> kinds;
-		for (auto vv : res)
-		{
-			kinds[v2m[vv]] = true;
-			cout << vv << "(" << v2m[vv] << ") ";
-		}
-		cout << endl;
-		assert(kinds.size() == partiteSize);
-		// allRes.emplace_back(res);
-		int sum = 0;
-		for (auto vv : res) sum += vv;
-		auto bk = res;
-		sort(bk.begin(), bk.end());
-		if (his[sum].empty()) his[sum].emplace_back(bk);
-		else
-		{
-			for (auto vv : his[sum])
-			{
-				bool pass = true;
-				for (int j = 0; j < vv.size(); j++)
-				{
-					if (vv[j] != bk[j])
-					{
-						pass = false;
-						break;
-					}
-				}
-				if (pass)
-				{
-					cout << "cliNum #" << *n << " same!!!" << endl;
-					exit(0);
-				}
+		int l = 1;
+		// // int mx = -1, mn = 0x3f3f3f;
+		for (i = 0; i < partiteSize; i++) {
+			// 2
+			if (A > cnt[i]) {
+				l = 0;
 			}
-			his[sum].emplace_back(bk);
+			// 3
+			// mx = max(mx, cnt[i]);
+			// mn = min(mn, cnt[i]);
 		}
-#endif
-		for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - u; ++i)
-		{
-			if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]])
-			{
-				end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
-				rend = g->rcd[Candidate[i]] + g->rd[Candidate[i]];
-				for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
-				for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
-				cnt[v2m[Candidate[i]]]++;
-				for (j = i + 1; j < CandidateCnt && CandidateCnt - j >= K - partiteSize - u - 1; j++)
-				{
-					if (u - cnt[v2m[Candidate[j]]] == visCNT[Candidate[j]])
-					{
-						// cnt[v2m[Candidate[j]]]++;
-						(*n)++;
-						// cnt[v2m[Candidate[j]]]--;
-					}
-				}
-				cnt[v2m[Candidate[i]]]--;
-				for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
-				for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
-			}
-		}
-		return;
+		// 3
+		// if (mx - mn > A)
+		// 	l = 0;
+		(*n) += l;
+		// return;
 	}
+	// if (u == K - 1)
+	// {
+	// 	for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - u; ++i)
+	// 		if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]]) {
+	// 			(*n) ++;
+	// 		}
+	// 	return;
+	// }
 
-	for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - u; ++i)
+	// for (i = p; i < CandidateCnt && CandidateCnt - i >= K - partiteSize - u; ++i)
+	for (i = p; i < CandidateCnt; ++i)
 	{
+		if (cnt[v2m[Candidate[i]]] >= B) continue; // 2 3
 		if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]])
 		{
-			end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
-			rend = g->rcd[Candidate[i]] + g->rd[Candidate[i]];
+			end = g->cd[Candidate[i]] + g->dfs_d[Candidate[i]];
+			rend = g->rcd[Candidate[i]] + g->dfs_rd[Candidate[i]];
+			// end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
+			// rend = g->rcd[Candidate[i]] + g->rd[partiteSize][Candidate[i]];
 
-			for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
-			for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
+			// for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
+			// for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
+			for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->dfs_adj[j]]++;
+			for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->dfs_radj[j]]++;
 
-			res.emplace_back(Candidate[i]);
+			// res.emplace_back(Candidate[i]);
 			cnt[v2m[Candidate[i]]]++;
 #if DEBUG
 			cout << "in " << dfs_cnt << " " << i << " add " << Candidate[i] << endl;
@@ -757,10 +740,12 @@ void dfs(specialsparse *g, int u, int p, unsigned long long *n)
 			cout << "back " << dfs_cnt << " " << i << " del " << Candidate[i] << endl;
 #endif
 			cnt[v2m[Candidate[i]]]--;
-			res.pop_back();
+			// res.pop_back();
 
-			for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
-			for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
+			// for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
+			// for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
+			for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->dfs_adj[j]]--;
+			for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->dfs_radj[j]]--;
 		}
 	}
 }
@@ -770,8 +755,8 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 	if (l == 2) {
 		for (auto &_ : res) vMap[v2m[_]] = _;
 		for (auto &_ : res) {
-		end = g->cd[_] + g->d[partiteSize][_];
-			rend = g->rcd[_] + g->rd[_];
+			end = g->cd[_] + g->d[partiteSize][_];
+			rend = g->rcd[_] + g->rd[partiteSize][_];
 			for (ne = g->cd[_]; ne < end; ne++) visCNT[g->adj[ne]]++;
 			for (ne = g->rcd[_]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 		}
@@ -779,7 +764,7 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 			u = g->sub[2][i];
 			vMap[v2m[u]] = u;
 			end = g->cd[u] + g->d[partiteSize][u];
-			rend = g->rcd[u] + g->rd[u];
+			rend = g->rcd[u] + g->rd[partiteSize][u];
 			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]++;
 			for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]++;
 			end = g->cd[u] + g->d[2][u];
@@ -788,7 +773,7 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 			for (j = g->cd[u]; j < end; j++) {
 				vMap[v2m[g->adj[j]]] = g->adj[j];
 				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
-				rend_ = g->rcd[g->adj[j]] + g->rd[g->adj[j]];
+				rend_ = g->rcd[g->adj[j]] + g->rd[partiteSize][g->adj[j]];
 
 				res.emplace_back(g->adj[j]);
 				for (ne = g->cd[g->adj[j]]; ne < end_; ne++) visCNT[g->adj[ne]]++;
@@ -807,21 +792,31 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 				// cout << minSet << " " << minV << endl;
 				// minV = g->adj[j];
 				end_ = g->cd[minV] + g->d[partiteSize][minV];
-				rend_ = g->rcd[minV] + g->rd[minV];
+				rend_ = g->rcd[minV] + g->rd[partiteSize][minV];
+
+				for (auto& I : partiteSetSize) I = 1;
 
 				// 枚举点的邻居 neighbor
 				for (ne = g->cd[minV]; ne < end_; ne++)
 				{
+					// if (visCNT[g->adj[ne]] == partiteSize - 1 && !st[g->adj[ne]])
 					if (visCNT[g->adj[ne]] == partiteSize - 1 && g->adj[ne] > vMap[v2m[g->adj[ne]]] && !st[g->adj[ne]]) // v是团中某三个点的邻居
 					{
 						Candidate[CandidateCnt++] = g->adj[ne];
+						partiteSetSize[v2m[g->adj[ne]]]++;
+						g->dfs_d[g->adj[ne]] = 0;
+						g->dfs_rd[g->adj[ne]] = 0;
 					}
 				}
 				for (ne = g->rcd[minV]; ne < rend_; ne++)
 				{
+					// if (visCNT[g->radj[ne]] == partiteSize - 1 && !st[g->radj[ne]])
 					if (visCNT[g->radj[ne]] == partiteSize - 1 && g->radj[ne] > vMap[v2m[g->radj[ne]]] && !st[g->radj[ne]]) // v是团中某三个点的邻居
 					{
 						Candidate[CandidateCnt++] = g->radj[ne];
+						partiteSetSize[v2m[g->radj[ne]]]++;
+						g->dfs_d[g->radj[ne]] = 0;
+						g->dfs_rd[g->radj[ne]] = 0;
 					}
 				}
 				// 枚举点所在集合
@@ -844,36 +839,78 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 						if (visCNT[vec[ne]] == partiteSize - 1 && vec[ne] > minV)
 						{
 							Candidate[CandidateCnt++] = vec[ne];
+							assert(v2m[vec[ne]] == minSet);
+							partiteSetSize[v2m[vec[ne]]]++;
+							g->dfs_d[vec[ne]] = 0;
+							g->dfs_rd[vec[ne]] = 0;
 						}
 					}
 				}
+				// bool f = true;
+				// 3
+				// B = 0x3f3f3f3f;
+				// for (auto I : partiteSetSize) {
+				// 	B = min(B, I);
+				// 	// cout << I << " ";
+				// }
+				// // cout << "(";
+				// B = B + A;
 
-				for (auto I : res) st[I] = false;
+				// cout << B << ")" << endl;
+				// if (f) {
+					int fenmu = 0, fenzi = 0;
+					for (int I = 0; I < CandidateCnt; I++) {
+						auto CanU = Candidate[I];
+						auto CanEnd = g->cd[CanU] + g->d[partiteSize][CanU];
+						for (int J = g->cd[CanU]; J < CanEnd; J++) {
+							auto CanV = g->adj[J];
+							fenmu++;
+							if (visCNT[CanV] == partiteSize - 1) {
+								fenzi++;
+								g->dfs_adj[g->cd[CanU] + g->dfs_d[CanU]++] = CanV;
+							}
+						}
+						CanEnd = g->rcd[CanU] + g->rd[partiteSize][CanU];
+						for (int J = g->rcd[CanU]; J < CanEnd; J++) {
+							auto CanV = g->radj[J];
+							fenmu++;
+							if (visCNT[CanV] == partiteSize - 1) {
+								fenzi++;
+								g->dfs_radj[g->rcd[CanU] + g->dfs_rd[CanU]++] = CanV;
+							}
+						}
+					}
+					// cout << fenmu << " " << fenzi << " " << fenmu*1.0 / fenzi << endl;
 
-				for (int I = 0; I < partiteSize; I++) cnt[I] = 1;
-				// if (K == partiteSize + 1)
-				// 	for (int I = 0; I < CandidateCnt; I++) (*n)++;
-				// else
+					for (auto I : res) st[I] = false;
+
+					for (int I = 0; I < partiteSize; I++) cnt[I] = 1;
+					// if (K == partiteSize + 1)
+					// 	for (int I = 0; I < CandidateCnt; I++) (*n)++;
+					// else
+
+					// if (CandidateCnt >= K - partiteSize) {
 					dfs(g, partiteSize, 0, n);
-				// (*n)++;
+					// }
+				// }
 
 				CandidateCnt = 0;
 				res.pop_back();
 				end_ = g->cd[g->adj[j]] + g->d[partiteSize][g->adj[j]];
-				rend_ = g->rcd[g->adj[j]] + g->rd[g->adj[j]];
+				rend_ = g->rcd[g->adj[j]] + g->rd[partiteSize][g->adj[j]];
 				for (ne = g->cd[g->adj[j]]; ne < end_; ne++) visCNT[g->adj[ne]]--;
 				for (ne = g->rcd[g->adj[j]]; ne < rend_; ne++) visCNT[g->radj[ne]]--;
 			}
 			res.pop_back();
 
 			end = g->cd[u] + g->d[partiteSize][u];
-			rend = g->rcd[u] + g->rd[u];
+			rend = g->rcd[u] + g->rd[partiteSize][u];
 			for (ne = g->cd[u]; ne < end; ne++) visCNT[g->adj[ne]]--;
 			for (ne = g->rcd[u]; ne < rend; ne++) visCNT[g->radj[ne]]--;
 		}
 		for (auto &_ : res) {
 			end = g->cd[_] + g->d[partiteSize][_];
-			rend = g->rcd[_] + g->rd[_];
+			rend = g->rcd[_] + g->rd[partiteSize][_];
 			for (ne = g->cd[_]; ne < end; ne++) visCNT[g->adj[ne]] = 0;
 			for (ne = g->rcd[_]; ne < rend; ne++) visCNT[g->radj[ne]] = 0;
 		}
@@ -916,8 +953,10 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 			}
 		}
 		res.emplace_back(u);
+
 		kclique(l - 1, g, n); // Gv = g[l-1]
 		res.pop_back();
+
 		for (j = 0; j < g->ns[l - 1]; j++) {//restoring labels
 			v = g->sub[l - 1][j];
 			g->lab[v] = l;
@@ -930,25 +969,29 @@ int main(int argc, char** argv) {
 	auto mp = get_index_mem();
 	auto m1 = mp["pk"];
 	specialsparse* g;
-	// partiteSize = atoi(argv[1]);
-	partiteSize = 4;
-	// unsigned char k = atoi(argv[2]);
-	unsigned char k = 6;
+	partiteSize = atoi(argv[1]);
+	// partiteSize = 4;
+	unsigned char k = atoi(argv[2]);
+	// unsigned char k = 9;
 	K = k;
 	unsigned long long n;
 	time_t t0, t1, t2;
 	t1 = time(NULL);
 	t0 = t1;
 
-	// printf("Reading edgelist from file %s\n", argv[3]);
-	// g = readedgelist(argv[3]);
+	printf("Reading edgelist from file %s\n", argv[3]);
+	g = readedgelist(argv[3]);
+	A = atoi(argv[4]);
+	B = atoi(argv[5]);
+
 	// facebook amazon
-	char pa[100] = "../../Dataset/dblpZJ4.csv";
+	// char pa[100] = "../Dataset/KPC_Dataset/congressZJ4.csv";
 	// char pa[100] = "../data/test";
-	g = readedgelist(pa);
+	// g = readedgelist(pa);
 	printf("Number of nodes = %u\n", g->n);
 	printf("Number of edges = %u\n", g->e);
 	printf("Number of partiteSize = %u\n", partiteSize);
+	printf("A=%d B=%d\n", A, B);
 	cnt = new int[partiteSize];
 	t2 = time(NULL);
 	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
@@ -975,6 +1018,7 @@ int main(int argc, char** argv) {
 	memset(vMap, -1, g->n * sizeof(int));
 
 	n = 0;
+
 	kclique(partiteSize, g, &n);
 
 	printf("Number of %u-cliques: %llu\n", k, n);
@@ -983,7 +1027,7 @@ int main(int argc, char** argv) {
 	mp = get_index_mem();
 	auto m2 = mp["pk"];
 	fstream fs = fstream("../base_res.csv", ios::app);
-	fs << argv[3] << ",comb," << g->n << "," << g->e << "," << (int)k << "," << n << "," << Duration(ti) << "," << m2 - m1 << "," << graphSize - m1 << endl;
+	fs << argv[3] << ",comb," << g->n << "," << g->e << "," << (int)k << "," << n << "," << Duration(ti) << "," << m2 - m1 << "," << graphSize - m1 << "," << A << "," << B << "," << dfs_count << endl;
 	t2 = time(NULL);
 	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
 	t1 = t2;

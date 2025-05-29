@@ -215,6 +215,9 @@ KPC_BINARY_DIR:STATIC=/home/qsl/exp/KPC/build
 //Value Computed by CMake
 KPC_SOURCE_DIR:STATIC=/home/qsl/exp/KPC
 
+//The directory containing a CMake configuration file for TBB.
+TBB_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/TBB
+
 
 ########################
 # INTERNAL cache entries

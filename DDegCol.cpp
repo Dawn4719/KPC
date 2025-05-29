@@ -11,6 +11,7 @@
 using namespace std;
 
 #define DEBUG 0
+#define NLINKS 100000000 //maximum number of edges for memory allocation, will increase if needed
 
 struct edge{
 	unsigned s;
@@ -107,7 +108,7 @@ int* vMap;
 int vMapCnt;
 vector<vector<int>> allRes;
 
-int* cnt;
+int* CNT;
 // bool checkSt[4];
 // int checkVertex[22470];
 map<int, vector<vector<int>>> his;
@@ -144,118 +145,74 @@ map<string, size_t> get_index_mem() {
 	fclose(fp);
 	return res;
 }
+int* partiteSet;
+map<int, int> partiteCount;
 
 specialsparse* readedgelist(char* edgelist) {
-	specialsparse *g = (specialsparse *)malloc(sizeof(specialsparse));
+	specialsparse *g =(specialsparse*)malloc(sizeof(specialsparse));
 	FILE *file;
 
 	g->n = 0;
 	g->e = 0;
+	partiteSet = new int[g->n];
+
 	file = fopen(edgelist, "r");
-	fscanf(file, "%u %u", &(g->n), &(g->e));
-	cout << g->n << " " << g->e << endl;
-	g->edges = (edge *)malloc(g->e * sizeof(edge));
-
-	char c;
+	fscanf(file, "%u", &g->n);
+	fscanf(file, "%u", &g->e);
+	cout << "Origin |E|:" << g->e << endl;
+	vector<vector<int>> v2partiteSet(partiteSize);
 	v2m = new int[g->n];
-	st = new bool[g->n];
-	visCNT = new int[g->n];
-	Candidate = new int[g->n];
-	partiteVertexCSR = new int[g->n];
-
-	memset(visCNT, 0, sizeof(int) * g->n);
-	memset(st, 0, sizeof(bool) * g->n);
-	memset(Candidate, 0, sizeof(int) * g->n);
-
-	map<int, int> v2partiteSet;
-	partiteSetSize.resize(partiteSize);
-	for (int i = 0; i < g->n; ++i) {
-		int x, y;
-		// fscanf(file, " %c %u %u", &c, &x, &y);
-		fscanf(file, "%u", &x);
-		v2m[i] = x;
-		// v2partiteSet[x].emplace_back(i);
-		partiteSetSize[x]++;
+	for (int i = 0; i < g->n; i++) {
+		fscanf(file, "%u", &v2m[i]);
+		// partiteCount[partiteSet[i]] = 0;
+		if (v2m[i] == partiteSize)
+			cout << i << " " << partiteSet[i] << endl;
+		assert(v2m[i] < partiteSize);
+		v2partiteSet[v2m[i]].emplace_back(i);
 	}
-	// partiteVertexSplit = new int[v2partiteSet.size() + 1];
-	// partiteVertexSplit[0] = 0;
-	// for (int _ = 0; _ < v2partiteSet.size(); ++_)
-	// 	partiteVertexSplit[_ + 1] = partiteVertexSplit[_] + v2partiteSet[_].size();
-	// for (int _ = 0; _ < v2partiteSet.size(); ++_)
-	// {
-	// 	for (int j = partiteVertexSplit[_], _2 = 0; j < partiteVertexSplit[_ + 1]; ++j)
-	// 	{
-	// 		partiteVertexCSR[j] = v2partiteSet[_][_2++];
-	// 	}
-	// 	sort(partiteVertexCSR + partiteVertexSplit[_], partiteVertexCSR + partiteVertexSplit[_ + 1]);
-	// }
 
-	// vector<int> R2(g->n);
-	// vector<int> R3(g->n);
-	// string R2Path = edgelist;
-	// string R3Path = edgelist;
-	// R2Path += "R2";
-	// R3Path += "R3";
-	// FILE * file2 = fopen(R2Path.c_str(), "r");
-	// for (int i = 0; i < g->n; ++i)
-	// {
-	// 	fscanf(file2, "%u", &(R2[i]));
-	// }
-	// fclose(file2);
-	//
-	// file2 = fopen(R3Path.c_str(), "r");
-	// for (int i = 0; i < g->n; ++i)
-	// {
-	// 	fscanf(file2, "%u", &(R3[i]));
-	// }
-	// fclose(file2);
-
-
-	adj.resize(g->n);
-
-	for (int i = 0; i < g->e; ++i)
+	for (auto& i : v2partiteSet)
+	{
+		i.shrink_to_fit();
+	}
+	int cnt = 0;
+	unsigned e1 = NLINKS;
+	g->edges = (edge*)malloc(e1 * sizeof(edge));
+	for (int i = 0; i < g->e; i++)
 	{
 		int s, t;
 		fscanf(file, "%u %u", &s, &t);
-		adj[s].emplace_back(t);
-		adj[t].emplace_back(s);
+		g->edges[cnt++] = edge(s, t);
+		if (cnt == e1) {
+			e1 += NLINKS;
+			g->edges = (edge*)realloc(g->edges, e1 * sizeof(edge));
+		}
+		partiteCount[partiteSet[s]]++;
+		partiteCount[partiteSet[t]]++;
 	}
 	fclose(file);
+	cout << "After Del |E|:" << g->e << endl;
 
-	vector<int> goodV(g->n);
-	for (int i = 0; i < g->n; ++i)
+	for (auto& i : v2partiteSet)
 	{
-		map<int, bool> goodSt;
-		for (auto j : adj[i])
-		{
-			goodSt[v2m[j]] = true;
-		}
-		if (goodSt.size() != partiteSize - 1)
-			adj[i].clear();
+		for (int v1 = 0; v1 < i.size(); v1++)
+			for (int v2 = v1 + 1; v2 < i.size(); v2++)
+			{
+				g->edges[cnt++] = edge(i[v1], i[v2]);
+				if (cnt == e1) {
+					e1 += NLINKS;
+					g->edges = (edge*)realloc(g->edges, e1 * sizeof(edge));
+				}
+			}
 	}
+	g->e = cnt;
+	g->edges = (edge*)realloc(g->edges, g->e * sizeof(edge));
 
-	file = fopen(edgelist, "r");
-	fscanf(file, "%u %u", &(g->n), &(g->e));
-	for (int i = 0; i < g->n; ++i) {
-		int x;
-		fscanf(file, "%u", &x);
-	}
-	int cnt_ = 0;
-	for (int i = 0; i < g->e; ++i)
-	{
-		int s, t;
-		fscanf(file, "%u %u", &s, &t);
-		// if (!R2[s] || !R2[t]) continue;
-		// if (adj[s].empty() || adj[t].empty()) continue;
-		g->edges[cnt_].s = s;
-		g->edges[cnt_].t = t;
-		cnt_++;
-	}
-//	g->n++;
-	g->e = cnt_;
-	cout << g->e << endl;
-//	g->edges = realloc(g->edges, g->e * sizeof(edge));
-
+	cout << "After Add |E|:" << g->e << endl;
+	// for (auto i : partiteCount)
+	// {
+	// 	cout << "#" << i.first << " " << i.second << endl;
+	// }
 	return g;
 }
 
@@ -577,153 +534,34 @@ void mkspecial_sub(specialsparse *g, unsigned char k) {
 
 int MaxColorNum;
 
-void dfs(specialsparse *g, int u, int p, unsigned long long *n)
-{
-	if (u == K)
-	{
-#if DEBUG
-		cout << "cliNum #" << ++cliNum << ": ";
-		for (auto vv : res)
-		{
-			cout << vv << "(" << v2m[vv] << ") ";
-		}
-		cout << endl;
-
-		// allRes.emplace_back(res);
-		int sum = 0;
-		for (auto vv : res) sum += vv;
-		auto bk = res;
-		sort(bk.begin(), bk.end());
-		if (his[sum].empty()) his[sum].emplace_back(bk);
-		else
-		{
-			for (auto vv : his[sum])
-			{
-				bool pass = true;
-				for (int j = 0; j < vv.size(); j++)
-				{
-					if (vv[j] != bk[j])
-					{
-						pass = false;
-						break;
-					}
-				}
-				if (pass)
-				{
-					cout << "cliNum #" << *n << " same!!!" << endl;
-					exit(0);
-				}
-			}
-			his[sum].emplace_back(bk);
-		}
-#endif
-		(*n)++;
-		return;
-	}
-	int i, j, end, rend;
-	for (i = p; i < CandidateCnt && CandidateCnt - i >= K - N - p; ++i)
-	{
-		bool flag = false;
-		end = g->cd[Candidate[i]] + g->d[partiteSize][Candidate[i]];
-		rend = g->rcd[Candidate[i]] + g->rd[Candidate[i]];
-
-		for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]++;
-		for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]++;
-		if (u - cnt[v2m[Candidate[i]]] == visCNT[Candidate[i]])
-		{
-			flag = true;
-			res.emplace_back(Candidate[i]);
-			cnt[v2m[Candidate[i]]]++;
-#if DEBUG
-			// cout << "in " << dfs_cnt << " " << i << " add " << Candidate[i] << endl;
-			dfs_cnt++;
-#endif
-			dfs(g, u + 1, i + 1, n);
-#if DEBUG
-			dfs_cnt--;
-			// cout << "back " << dfs_cnt << " " << i << " del " << Candidate[i] << endl;
-#endif
-
-			cnt[v2m[Candidate[i]]]--;
-		}
-		for (j = g->cd[Candidate[i]]; j < end; j++) visCNT[g->adj[j]]--;
-		for (j = g->rcd[Candidate[i]]; j < rend; j++) visCNT[g->radj[j]]--;
-		if (flag) res.pop_back();
-	}
-}
-
 void kclique(unsigned l, specialsparse *origin, specialsparse *g, unsigned long long *n) {
 	unsigned i, j, k, end,end_, rend,rend_, u, v, w, ne;
 	if (l == 2) {
-		for (auto &_ : res) vMap[v2m[_]] = _;
-
-		for (auto &_ : res) {
-			end = origin->cd[_] + origin->d[partiteSize][_];
-			rend = origin->rcd[_] + origin->rd[_];
-			for (ne = origin->cd[_]; ne < end; ne++) visCNT[origin->adj[ne]]++;
-			for (ne = origin->rcd[_]; ne < rend; ne++) visCNT[origin->radj[ne]]++;
-		}
-
 		for (i = 0; i < g->ns[2]; i++) {//list all edges
 			u = g->sub[2][i];
-			res.emplace_back(loc[u]);
-			vMap[v2m[loc[u]]] = loc[u];
-			// for (auto &ne : adj[u]) visCNT[ne]++;
-
-			end = origin->cd[loc[u]] + origin->d[partiteSize][loc[u]];
-			rend = origin->rcd[loc[u]] + origin->rd[loc[u]];
-			for (ne = origin->cd[loc[u]]; ne < end; ne++) visCNT[origin->adj[ne]]++;
-			for (ne = origin->rcd[loc[u]]; ne < rend; ne++) visCNT[origin->radj[ne]]++;
-
+			CNT[v2m[loc[u]]]++;
+			// res.emplace_back(loc[u]);
 			end = g->cd[u] + g->d[2][u];
 
 			for (j = g->cd[u]; j < end; j++) {
 				v = loc[g->adj[j]];
-				vMap[v2m[v]] = v;
-				res.emplace_back(v);
+				// res.emplace_back(v);
+				CNT[v2m[v]]++;
 				// cout << "!!!!!!!!!!!!!!!cliNum #" << ++cliNum << ": "; for (auto _ : res) cout << _ << " "; cout << endl;
-				end_ = origin->cd[v] + origin->d[partiteSize][v];
-				rend_ = origin->rcd[v] + origin->rd[v];
-				for (ne = origin->cd[v]; ne < end_; ne++) visCNT[origin->adj[ne]]++;
-				for (ne = origin->rcd[v]; ne < rend_; ne++) visCNT[origin->radj[ne]]++;
-
-				for (int _ = 0; _ < origin->n; _++)
-				{
-					if (visCNT[_] == partiteSize - 1 && _ > vMap[v2m[_]]) // v是团中某三个点的邻居
+				bool ok = true;
+				for (int kd = 0; kd < partiteSize; kd++)
+					if (CNT[kd] == 0)
 					{
-						Candidate[CandidateCnt++] = _;
-#if DEBUG
-						st2[Candidate[CandidateCnt - 1]] = true;
-						cout << Candidate[CandidateCnt - 1] << "(" << v2m[Candidate[CandidateCnt - 1]] << ") ";
-#endif
+						ok = false;
+						break;
 					}
-				}
-#if DEBUG
-				cout << endl;
-#endif
-
-				for (int I = 0; I < partiteSize; I++) cnt[I] = 1;
-				dfs(origin, partiteSize, 0, n);
-				// (*n)++;
-				CandidateCnt = 0;
-				res.pop_back();
-				end_ = origin->cd[v] + origin->d[partiteSize][v];
-				rend_ = origin->rcd[v] + origin->rd[v];
-				for (ne = origin->cd[v]; ne < end_; ne++) visCNT[origin->adj[ne]]--;
-				for (ne = origin->rcd[v]; ne < rend_; ne++) visCNT[origin->radj[ne]]--;
+				if (!ok)
+					(*n)++;
+				CNT[v2m[v]]--;
+				// res.pop_back();
 			}
-
-			res.pop_back();
-			end = origin->cd[loc[u]] + origin->d[partiteSize][loc[u]];
-			rend = origin->rcd[loc[u]] + origin->rd[loc[u]];
-			for (ne = origin->cd[loc[u]]; ne < end; ne++) visCNT[origin->adj[ne]]--;
-			for (ne = origin->rcd[loc[u]]; ne < rend; ne++) visCNT[origin->radj[ne]]--;
-		}
-		for (auto &_ : res) {
-			end = origin->cd[_] + origin->d[partiteSize][_];
-			rend = origin->rcd[_] + origin->rd[_];
-			for (ne = origin->cd[_]; ne < end; ne++) visCNT[origin->adj[ne]] = 0;
-			for (ne = origin->rcd[_]; ne < rend; ne++) visCNT[origin->radj[ne]] = 0;
+			// res.pop_back();
+			CNT[v2m[loc[u]]]--;
 		}
 		return;
 	}
@@ -882,10 +720,14 @@ void kclique(unsigned l, specialsparse *origin, specialsparse *g, unsigned long 
 
             if (colorNum + 1 > MaxColorNum) MaxColorNum = colorNum + 1;
 			// printf("Color Nums: %d\n", colorNum + 1);
-			res.emplace_back(u);
 
-			kclique(l - 1, g, subg, n);
-			res.pop_back();
+				CNT[v2m[u]]++;
+				res.emplace_back(u);
+				kclique(l - 1, g, subg, n);
+				res.pop_back();
+				CNT[v2m[u]]--;
+
+
 			for (j = 0; j < g->ns[l - 1]; j++) {//restoring labels
 				ind[loc[j]] = -1;
 				v = g->sub[l - 1][j];
@@ -927,9 +769,12 @@ void kclique(unsigned l, specialsparse *origin, specialsparse *g, unsigned long 
 
 				}
 			}
+			CNT[v2m[loc[u]]]++;
 			res.emplace_back(loc[u]);
 			kclique(l - 1, origin, g, n);
 			res.pop_back();
+			CNT[v2m[loc[u]]]--;
+
 			for (j = 0; j < g->ns[l - 1]; j++) {//restoring labels
 				v = g->sub[l - 1][j];
 				g->lab[v] = l;
@@ -950,25 +795,27 @@ int main(int argc, char** argv) {
 	auto mp = get_index_mem();
 	auto m1 = mp["pk"];
 	specialsparse* g;
-	partiteSize = atoi(argv[1]);
-	unsigned char k = atoi(argv[2]);
-	// unsigned char k = 7;
+	// partiteSize = atoi(argv[1]);
+	// unsigned char k = atoi(argv[2]);
+	partiteSize = 4;
+	unsigned char k = 4;
 	K = k;
 	unsigned long long n;
 	time_t t0, t1, t2;
 	t1 = time(NULL);
 	t0 = t1;
 
-	printf("Reading edgelist from file %s\n", argv[3]);
+	// printf("Reading edgelist from file %s\n", argv[3]);
 	// g = readedgelist(argv[3]);
 	// facebook amazon
-	// char pa[100] = "../Dataset/amazon.csv";
+	char pa[100] = "../../Dataset/emailZJ4.csv";
 	// char pa[100] = "../data/test";
-	g = readedgelist(argv[3]);
+	g = readedgelist(pa);
 	printf("Number of nodes = %u\n", g->n);
 	printf("Number of edges = %u\n", g->e);
 	printf("Number of partiteSize = %u\n", partiteSize);
-	cnt = new int[partiteSize];
+	CNT = new int[partiteSize];
+	memset(CNT, 0, partiteSize * sizeof(int));
 	t2 = time(NULL);
 	printf("- Time = %ldh%ldm%lds\n", (t2 - t1) / 3600, ((t2 - t1) % 3600) / 60, ((t2 - t1) % 60));
 	t1 = t2;
