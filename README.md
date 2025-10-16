@@ -38,7 +38,7 @@ After running the codes, there will be executable files called `KPC` in `build` 
 | Argvs | Description |
 |--------|-------------|
 | `argv[1]`   | The number of partite sets |
-| `argv[2]`   | The value of $lambda$ (WHEN `argv[4]==-1 && argv[5]==0`) or $\delta$ (WHEN `argv[4]==0 && argv[5]==-1`)|
+| `argv[2]`   | The value of $\lambda$ (WHEN `argv[4]==-1 && argv[5]==0`) or $\delta$ (WHEN `argv[4]==0 && argv[5]==-1`)|
 | `argv[3]`   | The path of dataset |
 | `argv[4]`   | The value of $\alpha$ |
 | `argv[5]`   | The value of $\beta$ |
