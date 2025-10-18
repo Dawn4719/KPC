@@ -44,3 +44,7 @@ After running the codes, there will be executable files called `KPC` in `build` 
 | `argv[5]`   | The value of $\beta$ |
 
 ---
+
+## External Dependencies
+- MEBA: available at [C++ veresion](https://github.com/ddervs/MBEA) and [JAVA version](https://github.com/gaurabdg/maximal-biclique-enumeration)
+---
